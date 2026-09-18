@@ -211,7 +211,22 @@
   #references a{ word-break:break-word; }
 
   footer{ grid-column:1/-1; max-width:760px; margin: 20px auto 0; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-faint); font-size:12.5px; }
+
+  .sitenav{
+    display:flex; gap:24px; align-items:center;
+    padding:14px 20px; border-bottom:1px solid var(--border);
+    max-width:1180px; margin:0 auto;
+    font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.06em; text-transform:uppercase;
+  }
+  .sitenav a{ color:var(--ink-soft); border-bottom:1px solid transparent; padding-bottom:2px; }
+  .sitenav a:hover{ color:var(--accent); }
+  .sitenav a.active{ color:var(--accent); border-bottom-color:var(--accent); }
 </style>
+
+<nav class="sitenav">
+  <a href="index.html" class="active">Paper</a>
+  <a href="action-plan.html">Action Plan</a>
+</nav>
 
 <div class="shell">
   <header class="masthead">

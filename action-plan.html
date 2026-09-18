@@ -1,0 +1,220 @@
+<title>Debt Action Plan</title>
+<style>
+  :root{
+    --bg:#f6f5f1;
+    --surface:#ffffff;
+    --ink:#1c1e22;
+    --ink-soft:#565b63;
+    --ink-faint:#83878f;
+    --border:#dcdad2;
+    --accent:#3d6b63;
+    --accent-soft:#e5edea;
+    --tag-bad:#8a3a2a;
+    --tag-bad-bg:#f3e6e1;
+    --tag-good:#2f6b4f;
+    --tag-good-bg:#e4efe8;
+    --rule:#c9c6bc;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#15171b; --surface:#1c1f24; --ink:#e8e7e2; --ink-soft:#aeb2b9; --ink-faint:#7d818a;
+      --border:#34383f; --accent:#7fb8ab; --accent-soft:#1f2f2a;
+      --tag-bad:#dd9682; --tag-bad-bg:#3a271f; --tag-good:#8bcaa5; --tag-good-bg:#1f3128; --rule:#3a3e45;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15171b; --surface:#1c1f24; --ink:#e8e7e2; --ink-soft:#aeb2b9; --ink-faint:#7d818a;
+    --border:#34383f; --accent:#7fb8ab; --accent-soft:#1f2f2a;
+    --tag-bad:#dd9682; --tag-bad-bg:#3a271f; --tag-good:#8bcaa5; --tag-good-bg:#1f3128; --rule:#3a3e45;
+  }
+
+  * { box-sizing: border-box; }
+  body{ background:var(--bg); color:var(--ink); font-family:"IBM Plex Sans", -apple-system, sans-serif; line-height:1.6; }
+  h1,h2,h3,h4{ font-family:"Source Serif 4", Georgia, serif; font-weight:700; color:var(--ink); text-wrap:balance; line-height:1.25; }
+  a{ color:var(--accent); text-decoration:none; border-bottom:1px solid transparent; }
+  a:hover{ border-bottom-color:var(--accent); }
+  .num{ font-variant-numeric: tabular-nums; font-family:"IBM Plex Mono", monospace; }
+
+  .sitenav{
+    display:flex; gap:24px; align-items:center;
+    padding:14px 20px; border-bottom:1px solid var(--border);
+    max-width:1180px; margin:0 auto;
+    font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.06em; text-transform:uppercase;
+  }
+  .sitenav a{ color:var(--ink-soft); border-bottom:1px solid transparent; padding-bottom:2px; }
+  .sitenav a:hover{ color:var(--accent); }
+  .sitenav a.active{ color:var(--accent); border-bottom-color:var(--accent); }
+
+  .wrap{ max-width:800px; margin:0 auto; padding:0 20px 80px; }
+  @media (max-width:640px){ .wrap{ padding:0 16px 60px; } }
+
+  header.masthead{ padding: 36px 0 26px; border-bottom:2px solid var(--ink); margin-bottom:8px; }
+  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:14px; }
+  h1.title{ font-size:clamp(26px,4vw,38px); margin:0 0 10px; }
+  .subtitle{ color:var(--ink-soft); font-size:16px; max-width:64ch; }
+
+  section{ margin-bottom:48px; }
+  section > h2{ font-size:22px; margin:36px 0 6px; display:flex; align-items:baseline; gap:10px; }
+  section > h2 .n{ color:var(--accent); font-family:"IBM Plex Mono",monospace; font-size:16px; }
+  .dek{ color:var(--ink-soft); margin:0 0 20px; font-size:14.5px; max-width:64ch; }
+  h3{ font-size:17px; margin:22px 0 6px; }
+  p{ margin:0 0 14px; max-width:66ch; }
+  ul{ margin:0 0 16px; padding-left:22px; }
+  ul li{ margin-bottom:6px; max-width:62ch; }
+
+  .phase{ background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:18px 20px; margin:16px 0; }
+  .phase-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
+  .phase-head h3{ margin:0; font-size:16.5px; }
+  .phase-when{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; }
+  .phase p{ font-size:14px; color:var(--ink-soft); margin-bottom:10px; }
+  .phase ul{ font-size:13.8px; color:var(--ink-soft); }
+  .vehicle{ display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.03em; text-transform:uppercase; padding:3px 8px; border-radius:3px; background:var(--accent-soft); color:var(--accent); margin-bottom:8px; }
+
+  .callout{ background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:4px; padding:16px 18px; margin:18px 0; font-size:14.5px; color:var(--ink-soft); }
+  .callout strong{ color:var(--ink); }
+
+  table{ width:100%; border-collapse:collapse; margin:18px 0 22px; font-size:13.4px; background:var(--surface); border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+  caption{ text-align:left; font-size:12.5px; color:var(--ink-faint); margin-bottom:6px; font-family:"IBM Plex Mono",monospace; }
+  th, td{ text-align:left; padding:8px 11px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th{ font-family:"IBM Plex Mono",monospace; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--ink-faint); background:var(--accent-soft); }
+  tr:last-child td{ border-bottom:none; }
+  td.num, th.num{ font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  tr.total td{ font-weight:600; background:var(--accent-soft); }
+  .tablewrap{ overflow-x:auto; }
+
+  .chart{ background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:24px 20px 14px; margin:20px 0; }
+  .chart-bars{ display:flex; align-items:flex-end; gap:8px; height:220px; }
+  .bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+  .bar-val{ font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--ink-soft); margin-bottom:4px; white-space:nowrap; }
+  .bar{ width:100%; background:var(--accent); border-radius:3px 3px 0 0; min-height:2px; }
+  .bar-label{ font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--ink-faint); margin-top:6px; }
+  .chart-title{ font-family:"IBM Plex Mono",monospace; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin-bottom:16px; }
+
+  hr.rule{ border:none; border-top:1px solid var(--rule); margin:36px 0; }
+  footer{ margin-top:20px; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-faint); font-size:12.5px; }
+</style>
+
+<nav class="sitenav">
+  <a href="index.html">Paper</a>
+  <a href="action-plan.html" class="active">Action Plan</a>
+</nav>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="eyebrow">Working Paper &middot; Implementation Roadmap</div>
+    <h1 class="title">Action Plan</h1>
+    <p class="subtitle">The main paper lays out what each lever does and what it's worth. This page sequences them into an order a Congress and administration could actually execute, and builds an illustrative year-by-year savings path from the figures already cited there.</p>
+  </header>
+
+  <section>
+    <h2><span class="n">1.</span> Sequencing principles</h2>
+    <p>The order below is set by <strong>execution feasibility, not urgency</strong>. Items that need no new legislation go first; items that need one reconciliation-eligible revenue bill go next, since those need only a simple Senate majority; annual appropriations items follow the normal budget calendar; and the two hardest items &mdash; entitlement reform and immigration &mdash; are placed last because both have historically required a standalone bipartisan deal, not a routine vote. Financial repression is kept outside the default sequence entirely and treated as a contingent fallback, not a baseline step, given how disruptive and Fed-dependent it is.</p>
+  </section>
+
+  <section>
+    <h2><span class="n">2.</span> The roadmap</h2>
+
+    <div class="phase">
+      <div class="phase-head"><h3>Phase 1 &mdash; Year 1</h3><span class="phase-when">No new legislation required</span></div>
+      <span class="vehicle">Administrative / appropriations</span>
+      <p>Everything here can start immediately because it's an executive, Treasury, or routine-appropriations action rather than a standalone bill.</p>
+      <ul>
+        <li><strong>IRS enforcement funding</strong> &mdash; an appropriations decision, not new authorizing legislation.</li>
+        <li><strong>Gold reserve revaluation</strong> &mdash; a Treasury/Fed accounting action; one-time.</li>
+        <li><strong>Liquidate seized bitcoin holdings</strong> &mdash; requires formally reversing the 2025 Strategic Bitcoin Reserve executive order first; one-time.</li>
+        <li><strong>Extend average debt maturity</strong> &mdash; a Treasury debt-management decision; reduces refinancing risk rather than producing a scored dollar figure, so it isn't in the table below, but it costs nothing to start.</li>
+        <li><strong>Put tariff revenue on firm legal footing</strong> &mdash; narrow legislation to replace the IEEPA authority the Supreme Court struck down, so the revenue already being collected stops being clawed back in refunds.</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><h3>Phase 2 &mdash; Years 2&ndash;3</h3><span class="phase-when">One reconciliation bill</span></div>
+      <span class="vehicle">Budget reconciliation</span>
+      <p>These four are revenue measures that can be bundled into a single reconciliation bill, which only needs a simple Senate majority rather than 60 votes &mdash; the same legislative vehicle used for major tax bills in 2017 and 2025.</p>
+      <ul>
+        <li>Corporate rate 21% &rarr; 28%</li>
+        <li>Repeal stepped-up basis at death</li>
+        <li>Carbon tax</li>
+        <li>Raise the Social Security payroll tax cap</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><h3>Phase 3 &mdash; Years 2&ndash;4</h3><span class="phase-when">Normal appropriations cycle</span></div>
+      <span class="vehicle">Annual appropriations</span>
+      <p>Discretionary and defense reductions phase in gradually through the ordinary annual budget process rather than a single vote &mdash; realistically reaching full run-rate only after two or three budget cycles.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><h3>Phase 4 &mdash; Years 3&ndash;5</h3><span class="phase-when">Standalone bipartisan deal</span></div>
+      <span class="vehicle">Commission-style negotiation</span>
+      <p>Social Security's benefit formula has only been successfully reformed once in the modern era &mdash; the 1983 Greenspan Commission, which paired a Republican president and a Democratic House Speaker in a deal neither party could have passed alone. This paper assumes the same pattern: a negotiated package (the progressive price indexing formula from the main paper, Section 6.1) reached by Year 3 and effective for new beneficiaries from Year 4.</p>
+      <p>Its fiscal effect is deliberately excluded from the year-by-year table below. Because only new beneficiaries are affected, the savings ramp up over decades as the existing beneficiary population gradually turns over &mdash; a path that requires SSA actuarial modeling this paper doesn't attempt to fabricate. See Section 6.1 of the main paper for the $25.1 trillion long-run shortfall and the reform's estimated 75-year effect.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><h3>Phase 5 &mdash; Years 4&ndash;6</h3><span class="phase-when">Major standalone legislation</span></div>
+      <span class="vehicle">Immigration legislation</span>
+      <p>The formalized non-citizen worker visa program (main paper, Section 9.2) is a large enough policy change that it needs its own bill and its own political coalition, independent of the fiscal package in Phases 1&ndash;3. Its growth effect is also excluded from the table below: the $0.9 trillion figure cited in the main paper is the <em>realized</em> effect of the 2021&ndash;2024 immigration surge, not a forward score of this specific new proposal, and reusing a historical result as a projection for a different policy would overstate what's actually known.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><h3>Contingent &mdash; Year 5 checkpoint onward</h3><span class="phase-when">Only if the trajectory hasn't stabilized</span></div>
+      <span class="vehicle">Monetary policy, requires Fed cooperation</span>
+      <p>Financial repression (main paper, Section 8.1) is held outside the default sequence. It requires sustained Federal Reserve cooperation in a way the other levers don't, transfers real cost onto savers and pension holders, and is measured in percentage points of debt-to-GDP rather than a dollar figure &mdash; it isn't in the table below for the same reason it wasn't summed into the main paper's Section 11 total. Treat it as the option to revisit at a five-year checkpoint if Phases 1&ndash;4 haven't stabilized the debt trajectory defined in Section 2 of the main paper.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">3.</span> Illustrative year-by-year savings</h2>
+    <p class="dek">Built by taking the static 10-year totals already cited in the main paper, converting each to an annual run-rate (total &divide; 10), and phasing each one in starting the year the roadmap above assumes it's enacted, with a one-year ramp to full run-rate. This is a simplified planning allocation, not an independent budget score &mdash; treat the shape of the path as more informative than any single cell.</p>
+
+    <div class="tablewrap">
+    <table>
+      <caption>New annual and cumulative deficit reduction, Years 1&ndash;10 ($ billions)</caption>
+      <thead><tr><th>Year</th><th class="num">New this year</th><th class="num">Cumulative</th><th>What's new</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td class="num">$952B</td><td class="num">$952B</td><td>Gold revaluation, bitcoin liquidation (one-time), IRS enforcement ramping, tariffs stabilized</td></tr>
+        <tr><td>2</td><td class="num">$389B</td><td class="num">$1,341B</td><td>Revenue package ramping (corporate, stepped-up basis, carbon tax, payroll cap); discretionary cuts begin</td></tr>
+        <tr><td>3</td><td class="num">$581B</td><td class="num">$1,922B</td><td>Revenue package reaches full run-rate; discretionary cuts continue ramping</td></tr>
+        <tr><td>4</td><td class="num">$631B</td><td class="num">$2,553B</td><td>Discretionary cuts reach full run-rate; steady state begins</td></tr>
+        <tr><td>5</td><td class="num">$631B</td><td class="num">$3,184B</td><td>Steady state</td></tr>
+        <tr><td>6</td><td class="num">$631B</td><td class="num">$3,815B</td><td>Steady state</td></tr>
+        <tr><td>7</td><td class="num">$631B</td><td class="num">$4,446B</td><td>Steady state</td></tr>
+        <tr><td>8</td><td class="num">$631B</td><td class="num">$5,077B</td><td>Steady state</td></tr>
+        <tr><td>9</td><td class="num">$631B</td><td class="num">$5,708B</td><td>Steady state</td></tr>
+        <tr class="total"><td>10</td><td class="num">$631B</td><td class="num">$6,339B</td><td>Steady state &mdash; cumulative total</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="chart">
+      <div class="chart-title">Cumulative deficit reduction, Years 1&ndash;10</div>
+      <div class="chart-bars">
+        <div class="bar-col"><div class="bar-val">$1.0T</div><div class="bar" style="height:15.0%"></div><div class="bar-label">Y1</div></div>
+        <div class="bar-col"><div class="bar-val">$1.3T</div><div class="bar" style="height:21.2%"></div><div class="bar-label">Y2</div></div>
+        <div class="bar-col"><div class="bar-val">$1.9T</div><div class="bar" style="height:30.3%"></div><div class="bar-label">Y3</div></div>
+        <div class="bar-col"><div class="bar-val">$2.6T</div><div class="bar" style="height:40.3%"></div><div class="bar-label">Y4</div></div>
+        <div class="bar-col"><div class="bar-val">$3.2T</div><div class="bar" style="height:50.2%"></div><div class="bar-label">Y5</div></div>
+        <div class="bar-col"><div class="bar-val">$3.8T</div><div class="bar" style="height:60.2%"></div><div class="bar-label">Y6</div></div>
+        <div class="bar-col"><div class="bar-val">$4.4T</div><div class="bar" style="height:70.1%"></div><div class="bar-label">Y7</div></div>
+        <div class="bar-col"><div class="bar-val">$5.1T</div><div class="bar" style="height:80.1%"></div><div class="bar-label">Y8</div></div>
+        <div class="bar-col"><div class="bar-val">$5.7T</div><div class="bar" style="height:90.0%"></div><div class="bar-label">Y9</div></div>
+        <div class="bar-col"><div class="bar-val">$6.3T</div><div class="bar" style="height:100%"></div><div class="bar-label">Y10</div></div>
+      </div>
+    </div>
+
+    <div class="callout"><strong>Why this total ($6.3T) is larger than the main paper's Section 11 range ($3.6&ndash;5.6T):</strong> that range deliberately excluded the one-time gold and bitcoin items and the legally contested tariff revenue, to avoid overstating the structural, repeatable levers. This page's total adds those three back in because an actual sequenced plan would use them, but they're a genuinely different kind of item &mdash; two are one-time windfalls that can't recur, and one (tariffs) depends on winning a legal fight the government has already partly lost once. Strip out gold ($740B), bitcoin ($29B), and tariffs (~$1.7T) and the remaining structural total over ten years is roughly <strong>$3.9 trillion</strong> &mdash; consistent with the main paper's range.</div>
+  </section>
+
+  <section>
+    <h2><span class="n">4.</span> What this plan doesn't solve</h2>
+    <p>Even at $6.3 trillion cumulative over ten years, this reduces the deficit meaningfully without reversing the underlying $40 trillion debt stock. It's a plan to stop the bleeding and start stabilizing the trajectory defined in Section 2 of the main paper &mdash; not a claim that the debt itself falls by this amount. Reversing the stock requires this plan to hold for multiple decades, plus the entitlement reform in Phase 4 reaching its full effect over a much longer horizon than the ten years modeled here, plus sustained GDP growth outpacing new borrowing.</p>
+    <p>The single biggest risk to this entire sequence is political: any one phase failing to pass doesn't just remove that phase's savings, it removes the precedent the next phase's negotiators are relying on. Phase 2's reconciliation bill is the most load-bearing step in the whole plan &mdash; it's the first real test of whether a Congress will pass painful measures at all, and everything in Phases 3&ndash;5 assumes that test succeeds.</p>
+  </section>
+
+  <hr class="rule">
+  <footer>
+    Figures build on the sources cited in the main paper (see <a href="index.html">Paper</a>, Section 11 and each lever's own subsection). The phasing, ramp assumptions, and resulting year-by-year path on this page are an illustrative planning allocation prepared for this paper, not an independent CBO, JCT, or SSA score.
+  </footer>
+</div>
