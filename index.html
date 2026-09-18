@@ -1,0 +1,642 @@
+<title>U.S. Debt Management</title>
+<style>
+  :root{
+    --bg:#f6f5f1;
+    --surface:#ffffff;
+    --ink:#1c1e22;
+    --ink-soft:#565b63;
+    --ink-faint:#83878f;
+    --border:#dcdad2;
+    --accent:#3d6b63;
+    --accent-soft:#e5edea;
+    --tag-bad:#8a3a2a;
+    --tag-bad-bg:#f3e6e1;
+    --tag-good:#2f6b4f;
+    --tag-good-bg:#e4efe8;
+    --rule:#c9c6bc;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#15171b;
+      --surface:#1c1f24;
+      --ink:#e8e7e2;
+      --ink-soft:#aeb2b9;
+      --ink-faint:#7d818a;
+      --border:#34383f;
+      --accent:#7fb8ab;
+      --accent-soft:#1f2f2a;
+      --tag-bad:#dd9682;
+      --tag-bad-bg:#3a271f;
+      --tag-good:#8bcaa5;
+      --tag-good-bg:#1f3128;
+      --rule:#3a3e45;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15171b;
+    --surface:#1c1f24;
+    --ink:#e8e7e2;
+    --ink-soft:#aeb2b9;
+    --ink-faint:#7d818a;
+    --border:#34383f;
+    --accent:#7fb8ab;
+    --accent-soft:#1f2f2a;
+    --tag-bad:#dd9682;
+    --tag-bad-bg:#3a271f;
+    --tag-good:#8bcaa5;
+    --tag-good-bg:#1f3128;
+    --rule:#3a3e45;
+  }
+
+  * { box-sizing: border-box; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", -apple-system, sans-serif;
+    line-height:1.6;
+    padding-inline: 0;
+  }
+  h1,h2,h3,h4{
+    font-family:"Source Serif 4", Georgia, serif;
+    font-weight:700;
+    color:var(--ink);
+    text-wrap:balance;
+    line-height:1.25;
+  }
+  a{ color:var(--accent); text-decoration:none; border-bottom:1px solid transparent; }
+  a:hover{ border-bottom-color:var(--accent); }
+  .num{ font-variant-numeric: tabular-nums; font-family:"IBM Plex Mono", monospace; }
+
+  .shell{
+    max-width:1180px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns: 240px minmax(0,760px);
+    gap:56px;
+    padding: 0 20px 80px;
+    justify-content:center;
+  }
+  @media (max-width:900px){
+    .shell{ grid-template-columns: 1fr; padding: 0 16px 60px; }
+  }
+
+  header.masthead{
+    grid-column: 1 / -1;
+    max-width:800px;
+    margin: 44px auto 8px;
+    padding-bottom:28px;
+    border-bottom:2px solid var(--ink);
+  }
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:14px;
+  }
+  h1.title{ font-size:clamp(28px,4vw,42px); margin:0 0 10px; }
+  .subtitle{ color:var(--ink-soft); font-size:17px; max-width:60ch; }
+  .meta-row{
+    display:flex; gap:18px; flex-wrap:wrap;
+    margin-top:18px; font-size:13px; color:var(--ink-faint);
+    font-family:"IBM Plex Mono", monospace;
+  }
+
+  nav.toc{
+    position:sticky; top:24px; align-self:start;
+    font-size:13px;
+    padding-right:8px;
+    max-height:calc(100vh - 48px);
+    overflow-y:auto;
+  }
+  nav.toc .toc-label{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-faint); margin-bottom:10px;
+  }
+  nav.toc ol{ list-style:none; margin:0; padding:0; counter-reset:toc; }
+  nav.toc li{ counter-increment: toc; margin-bottom:7px; }
+  nav.toc a{ color:var(--ink-soft); display:block; }
+  nav.toc a:hover, nav.toc a:focus{ color:var(--accent); border-bottom:none; }
+  nav.toc a::before{
+    content: counter(toc) ". ";
+    font-family:"IBM Plex Mono",monospace;
+    color:var(--ink-faint);
+  }
+  details.toc-mobile{ display:none; }
+  @media (max-width:900px){
+    nav.toc{ display:none; }
+    details.toc-mobile{
+      display:block; grid-column:1/-1; margin: 4px 0 8px;
+      border:1px solid var(--border); border-radius:6px; background:var(--surface);
+      padding: 10px 14px;
+    }
+    details.toc-mobile summary{ cursor:pointer; font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); }
+    details.toc-mobile ol{ list-style:none; margin:10px 0 0; padding:0; counter-reset:toc2; }
+    details.toc-mobile li{ counter-increment: toc2; padding:5px 0; border-top:1px solid var(--border); font-size:13.5px; }
+    details.toc-mobile a{ color:var(--ink-soft); }
+    details.toc-mobile a::before{ content: counter(toc2) ". "; color:var(--ink-faint); font-family:"IBM Plex Mono",monospace; }
+  }
+
+  main{ min-width:0; }
+  section{ margin-bottom:52px; scroll-margin-top:20px; }
+  section > h2{
+    font-size:23px; margin:0 0 4px;
+    display:flex; align-items:baseline; gap:10px;
+  }
+  section > h2 .n{ color:var(--accent); font-family:"IBM Plex Mono",monospace; font-size:16px; }
+  section .dek{ color:var(--ink-soft); margin:0 0 20px; font-size:15px; max-width:64ch; }
+  h3{ font-size:18px; margin:28px 0 8px; }
+  h3 .n2{ color:var(--accent); font-family:"IBM Plex Mono",monospace; font-size:14px; margin-right:4px; }
+  h4{ font-size:14.5px; margin:20px 0 6px; text-transform:uppercase; letter-spacing:.03em; color:var(--ink-soft); font-family:"IBM Plex Sans",sans-serif; font-weight:600; }
+  p{ margin:0 0 14px; max-width:66ch; }
+  ul, ol.plain{ margin:0 0 16px; padding-left:22px; }
+  ul li, ol.plain li{ margin-bottom:8px; max-width:62ch; }
+
+  .callout{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-left:3px solid var(--accent);
+    border-radius:4px;
+    padding:16px 18px;
+    margin:18px 0;
+    font-size:14.5px;
+    color:var(--ink-soft);
+  }
+  .callout strong{ color:var(--ink); }
+  .callout.counter{ border-left-color:var(--tag-bad); }
+
+  .tag{
+    display:inline-block;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px; letter-spacing:.04em; text-transform:uppercase;
+    padding:3px 8px; border-radius:3px; margin-bottom:10px;
+  }
+  .tag.bad{ background:var(--tag-bad-bg); color:var(--tag-bad); }
+  .tag.good{ background:var(--tag-good-bg); color:var(--tag-good); }
+
+  .twocol{ display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:20px 0; }
+  @media (max-width:640px){ .twocol{ grid-template-columns:1fr; } }
+  .col-card{ background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:18px 20px; }
+  .col-card h3{ margin-top:0; font-size:15px; }
+  .col-card ol.plain{ padding-left:18px; }
+  .col-card ol.plain li{ font-size:13.8px; margin-bottom:10px; }
+
+  table{
+    width:100%; border-collapse:collapse; margin:18px 0 22px;
+    font-size:13.6px; background:var(--surface);
+    border:1px solid var(--border); border-radius:6px; overflow:hidden;
+  }
+  caption{ text-align:left; font-size:12.5px; color:var(--ink-faint); margin-bottom:6px; font-family:"IBM Plex Mono",monospace; }
+  th, td{ text-align:left; padding:9px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--ink-faint); background:var(--accent-soft); }
+  tr:last-child td{ border-bottom:none; }
+  td.num, th.num{ font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  tr.total td{ font-weight:600; background:var(--accent-soft); }
+  .tablewrap{ overflow-x:auto; }
+
+  .stat-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:20px 0; }
+  @media (max-width:640px){ .stat-row{ grid-template-columns:1fr 1fr; } }
+  .stat{ background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:14px 16px; }
+  .stat .v{ font-family:"IBM Plex Mono",monospace; font-size:22px; font-weight:600; color:var(--accent); font-variant-numeric:tabular-nums; }
+  .stat .l{ font-size:12px; color:var(--ink-faint); margin-top:4px; }
+
+  hr.rule{ border:none; border-top:1px solid var(--rule); margin:40px 0; }
+
+  #references{ font-size:13.6px; }
+  #references h3{ font-size:14px; margin:26px 0 8px; color:var(--ink-soft); font-family:"IBM Plex Sans",sans-serif; text-transform:uppercase; letter-spacing:.03em; }
+  #references ol.plain{ padding-left:20px; }
+  #references li{ margin-bottom:8px; color:var(--ink-soft); }
+  #references a{ word-break:break-word; }
+
+  footer{ grid-column:1/-1; max-width:760px; margin: 20px auto 0; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-faint); font-size:12.5px; }
+</style>
+
+<div class="shell">
+  <header class="masthead">
+    <div class="eyebrow">Working Paper &middot; Draft</div>
+    <h1 class="title">Managing the U.S. National Debt: A Framework of Policy Options</h1>
+    <p class="subtitle">Federal debt has surpassed $40 trillion against an economy of roughly $30 trillion. This paper sets out what that imbalance costs, what level of debt is actually defensible to carry, and the specific policy levers available to narrow the gap &mdash; including, where the evidence points that way, why a given lever is weaker or more contested than its advocates suggest.</p>
+    <div class="meta-row">
+      <span>Draft &middot; September 2026</span>
+      <span>Sections 1&ndash;11</span>
+      <span class="num">67 sources cited</span>
+    </div>
+  </header>
+
+  <details class="toc-mobile">
+    <summary>Contents</summary>
+    <ol>
+      <li><a href="#problem">The scale of the problem</a></li>
+      <li><a href="#target">What level of debt should be retained</a></li>
+      <li><a href="#case-against">The case against high debt</a></li>
+      <li><a href="#case-tolerate">The case for tolerating debt</a></li>
+      <li><a href="#framework">A framework of five levers</a></li>
+      <li><a href="#spending">Spending-side reforms</a></li>
+      <li><a href="#revenue">Revenue-side reforms</a></li>
+      <li><a href="#macro">Macroeconomic levers</a></li>
+      <li><a href="#growth">Growth-oriented levers</a></li>
+      <li><a href="#trust">Political feasibility and institutional trust</a></li>
+      <li><a href="#summary">Summary of estimated impact</a></li>
+      <li><a href="#references">References</a></li>
+    </ol>
+  </details>
+
+  <nav class="toc">
+    <div class="toc-label">Contents</div>
+    <ol>
+      <li><a href="#problem">The scale of the problem</a></li>
+      <li><a href="#target">What level of debt should be retained</a></li>
+      <li><a href="#case-against">The case against high debt</a></li>
+      <li><a href="#case-tolerate">The case for tolerating debt</a></li>
+      <li><a href="#framework">A framework of five levers</a></li>
+      <li><a href="#spending">Spending-side reforms</a></li>
+      <li><a href="#revenue">Revenue-side reforms</a></li>
+      <li><a href="#macro">Macroeconomic levers</a></li>
+      <li><a href="#growth">Growth-oriented levers</a></li>
+      <li><a href="#trust">Political feasibility</a></li>
+      <li><a href="#summary">Summary of impact</a></li>
+      <li><a href="#references">References</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section id="problem">
+      <h2><span class="n">1.</span> The scale of the problem</h2>
+      <p>Total federal debt crossed $40 trillion in August 2026, against an economy of roughly $30 trillion &mdash; a debt-to-GDP ratio above 100%. The $40.0 trillion figure is gross federal debt, which splits into two components that matter for different reasons: $32.3 trillion is debt held by the public (borrowed from domestic and foreign investors, and the figure most relevant to interest costs and crowding out), and $7.8 trillion is intragovernmental debt &mdash; mainly the Treasury securities the government holds against its own trust funds, the largest being Social Security's, at $2.3 trillion. The current-year deficit is projected at $1.9 trillion, or 5.8% of GDP, for 2026 (<a href="#ref-nbc-40t">NBC News</a>; <a href="#ref-crfb-grossvpublic">CRFB</a>).</p>
+      <p>This paper takes up three questions in turn: what level of debt is actually defensible to carry on an ongoing basis (Section 2), what specific problems the current level creates and what should be weighed against those problems (Sections 3&ndash;4), and which concrete policy levers could narrow the gap (Sections 5&ndash;9) &mdash; evaluated honestly, including where a lever's own advocates overstate what it delivers.</p>
+      <div class="stat-row">
+        <div class="stat"><div class="v">$40.0T</div><div class="l">Gross federal debt</div></div>
+        <div class="stat"><div class="v">$32.3T</div><div class="l">Held by the public</div></div>
+        <div class="stat"><div class="v">5.8%</div><div class="l">2026 deficit, % of GDP</div></div>
+      </div>
+    </section>
+
+    <section id="target">
+      <h2><span class="n">2.</span> What level of debt should be retained?</h2>
+      <p class="dek">The most influential attempt to answer this question empirically turned out to be wrong in its details, and the field has not produced a replacement number. That absence is itself informative for how this paper treats the question.</p>
+
+      <h3><span class="n2">2.1</span> The 90% threshold, and its unraveling</h3>
+      <p>In a widely cited 2010 paper, economists Carmen Reinhart and Kenneth Rogoff found that median GDP growth fell sharply once a country's debt-to-GDP ratio crossed roughly 90% &mdash; a finding that became a load-bearing citation in the austerity debates that followed the 2008 financial crisis, invoked by policymakers across multiple countries as justification for spending cuts (<a href="#ref-nber-growthdebt">Reinhart &amp; Rogoff, NBER 2010</a>).</p>
+      <p>In 2013, University of Massachusetts Amherst researchers Thomas Herndon, Michael Ash, and Robert Pollin obtained the original spreadsheet and found a coding error, along with a selective exclusion of several early postwar years of data for countries including Canada, New Zealand, and Australia. Correcting both, they found average real GDP growth for countries above the 90% threshold was 2.2%, not the &minus;0.1% originally published &mdash; reversing the paper's central, most politically consequential claim (<a href="#ref-epi-herndon">EPI</a>).</p>
+
+      <h3><span class="n2">2.2</span> What replaced it: nothing settled</h3>
+      <p>Subsequent research has not converged on a corrected number. A reanalysis by the Institute for Fiscal Studies using similar data found evidence of a threshold closer to 30% of GDP, not 90%, above which growth effects appear &mdash; a finding that, taken at face value, would already have been breached decades ago. An IMF working paper, titled bluntly "Debt and Growth: Is There a Magic Threshold?," found no robust threshold at all across the countries and periods it examined. A decade of follow-on studies has not resolved the disagreement (<a href="#ref-ifs-30pct">IFS</a>; <a href="#ref-imf-magicthreshold">IMF</a>).</p>
+
+      <h3><span class="n2">2.3</span> The position this paper takes</h3>
+      <p>Given the absence of a defensible fixed number, this paper does not adopt a target debt-to-GDP ratio as its organizing goal. Instead it uses a trajectory-based standard, consistent with how CBO itself frames long-term sustainability: the near-term objective is to stabilize debt held by the public relative to GDP &mdash; that is, stop the ratio from rising indefinitely &mdash; rather than to hit a specific end-state number. The levers evaluated in Sections 5 through 9 are assessed primarily on whether, in combination, they move the deficit toward a level consistent with that stabilization.</p>
+      <p>As a loose historical anchor rather than a scientific benchmark: debt held by the public averaged roughly 35&ndash;40% of GDP in the decades before the 2008 financial crisis, compared with the current ratio above 100%. That gap illustrates how far the trajectory has moved, without implying that 35&ndash;40% is itself a "correct" number to return to &mdash; the honest conclusion of Section 2.1&ndash;2.2 is that no such number has survived scrutiny.</p>
+    </section>
+
+    <section id="case-against">
+      <h2><span class="n">3.</span> The case against high debt</h2>
+      <p class="dek">Six mechanisms by which elevated federal debt imposes real economic costs.</p>
+
+      <h3><span class="n2">3.1</span> Rising interest costs crowd out other priorities</h3>
+      <p>Net interest on the debt is projected to rise from $1.0 trillion in 2026 to $2.1 trillion in 2036, totaling $16.2 trillion over the decade under current law. In fiscal year 2024, interest payments ($882 billion) already exceeded total defense discretionary spending ($874 billion). By 2034, interest is projected to consume 17% of the federal budget, compared with 6% for all spending on children combined (<a href="#ref-pgpf-interest">PGPF, 2025</a>; <a href="#ref-thirdway">Third Way</a>).</p>
+
+      <h3><span class="n2">3.2</span> Crowding out of private investment</h3>
+      <p>Large-scale federal borrowing competes with private borrowers for capital, which can raise interest rates economy-wide, reduce private investment, and slow productivity and wage growth (<a href="#ref-pgpf-crowdout">PGPF</a>).</p>
+
+      <h3><span class="n2">3.3</span> Erosion of fiscal space for emergencies and national security</h3>
+      <p>Years of structural deficits reduce the government's capacity to respond to recessions, wars, or geopolitical shocks without further destabilizing borrowing. In FY2024, interest payments ($882B) already exceeded total defense discretionary spending ($874B) &mdash; a comparison both the Bipartisan Policy Center and the Cato Institute cite as a national-security concern in its own right (<a href="#ref-bpc-natsec">BPC</a>; <a href="#ref-cato-natsec">Cato Institute</a>).</p>
+
+      <h3><span class="n2">3.4</span> Risk of a self-reinforcing debt spiral</h3>
+      <p>Rising debt can push interest rates higher, which increases interest costs, which increases debt further. Inflation offers only temporary relief &mdash; it shrinks the real value of existing debt, but eventually forces investors to demand higher yields on new issuance, worsening the spiral. Some analysts estimate the U.S. has under twenty years to correct its fiscal trajectory before this dynamic becomes very difficult to reverse (<a href="#ref-cnbc-doomloop">CNBC</a>; <a href="#ref-crfb-fiscalcrisis">CRFB</a>).</p>
+
+      <h3><span class="n2">3.5</span> Exposure through foreign holders</h3>
+      <p>Foreign investors hold roughly $8.5 trillion &mdash; about 29% &mdash; of U.S. Treasury debt. This makes U.S. fiscal credibility partly dependent on continued confidence from foreign governments and institutions (<a href="#ref-pgpf-foreign">PGPF</a>).</p>
+
+      <h3><span class="n2">3.6</span> Intergenerational burden</h3>
+      <p>Debt service costs and the eventual adjustment required to stabilize the debt &mdash; whether through spending cuts, tax increases, or inflation &mdash; are largely deferred onto future taxpayers, a point emphasized consistently in CBO's long-term outlooks (<a href="#ref-cbo-unsustainable">CBO</a>).</p>
+    </section>
+
+    <section id="case-tolerate">
+      <h2><span class="n">4.</span> The case for tolerating debt</h2>
+      <p class="dek">A body of academic work, most associated with Olivier Blanchard's 2019 presidential address to the American Economic Association, argues the costs of debt are smaller than commonly assumed &mdash; under specific conditions.</p>
+
+      <h3><span class="n2">4.1</span> Low interest rates change the calculus</h3>
+      <p>When the safe interest rate is expected to remain below the economy's growth rate over the long run, the government can roll over debt indefinitely without ever needing to raise taxes to retire it &mdash; meaning debt can carry little to no true fiscal cost (<a href="#ref-blanchard-aer">Blanchard, AER 2019</a>).</p>
+
+      <h3><span class="n2">4.2</span> Welfare costs are smaller than assumed</h3>
+      <p>Even accounting for reduced capital accumulation, Blanchard argues the welfare costs of additional debt are "second order" when the safe rate stays below the growth rate &mdash; a position echoed by economists including Lawrence Summers (<a href="#ref-mitpress-blanchard">MIT Press</a>).</p>
+
+      <h3><span class="n2">4.3</span> Room for countercyclical policy</h3>
+      <p>Lower interest rates leave monetary policy with less room to cut rates during a downturn, which raises the relative value of deficit spending as a stabilization tool (<a href="#ref-blanchard-aer">Blanchard, AER 2019</a>).</p>
+
+      <h3><span class="n2">4.4</span> Debt-financed public investment can pay for itself</h3>
+      <p>IMF research finds that debt-financed public investment &mdash; infrastructure, R&amp;D &mdash; has positive short- and long-term growth effects. Infrastructure spending carries one of the largest fiscal multipliers of any government spending category. Where the resulting GDP growth outpaces the new debt, the debt-to-GDP ratio does not necessarily worsen (<a href="#ref-wharton-infra">Penn Wharton Budget Model</a>).</p>
+
+      <h3><span class="n2">4.5</span> Deficit spending in a downturn can be a "free lunch"</h3>
+      <p>When the economy has idle resources during a recession, debt-financed spending can put those resources to work and even "crowd in" private investment, rather than crowd it out &mdash; the opposite of the mechanism in Section 3.2, which applies mainly at full employment (<a href="#ref-wharton-infra">Penn Wharton Budget Model</a>).</p>
+
+      <h3><span class="n2">4.6</span> Treasuries as a global safe asset</h3>
+      <p>Sustained demand for U.S. debt, including from foreign holders, partly reflects its role as the world's benchmark risk-free asset &mdash; a source of steady demand that keeps borrowing costs down rather than purely a vulnerability (<a href="#ref-pgpf-foreign">PGPF</a>).</p>
+
+      <div class="callout"><strong>A caveat worth stating plainly:</strong> Blanchard's argument was built for an era of persistently low rates. Interest rates are structurally higher today than through most of the 2010s, which narrows &mdash; without eliminating &mdash; the room the "tolerate the debt" case depends on. The sources in this section also skew toward academic economists writing before 2022; the sources in Section 3 skew toward fiscal-hawk advocacy organizations. Both leanings are worth keeping in mind when weighing the two cases against each other, and the threshold debate in Section 2 is a reason to be skeptical of confident claims on either side.</div>
+    </section>
+
+    <section id="framework">
+      <h2><span class="n">5.</span> A framework of five levers</h2>
+      <p class="dek">Sovereign debt management, historically, reduces to five broad tools. The remaining sections of this paper work through each in the specific context of the United States.</p>
+      <div class="twocol">
+        <div class="col-card">
+          <h3>The five levers</h3>
+          <ol class="plain">
+            <li><strong>Fiscal consolidation</strong> &mdash; spending cuts, tax increases, or both (Sections 6&ndash;7)</li>
+            <li><strong>Economic growth</strong> &mdash; grow GDP faster than debt so the ratio falls on its own (Section 9)</li>
+            <li><strong>Inflation</strong> &mdash; erode the real value of fixed-rate debt (Section 8.1)</li>
+            <li><strong>Financial repression</strong> &mdash; hold real interest rates below growth via regulation (Section 8.1)</li>
+            <li><strong>Restructuring or default</strong> &mdash; renegotiate or reduce principal owed</li>
+          </ol>
+        </div>
+        <div class="col-card">
+          <h3>On restructuring and default</h3>
+          <p style="font-size:13.8px;">For most sovereigns, restructuring is a standard crisis tool. For the United States, it would be functionally indistinguishable from a default on the world's reserve-currency benchmark asset, and most economists expect it would trigger a systemic flight from the dollar rather than an orderly renegotiation. This paper treats restructuring and default as out of scope, and addresses the more limited, non-crisis version of debt management &mdash; extending average maturity &mdash; separately in Section 8.2.</p>
+        </div>
+      </div>
+      <p>Source: <a href="#ref-worldbank-sovdebt">World Bank, <em>Managing Sovereign Debt</em></a>.</p>
+    </section>
+
+    <section id="spending">
+      <h2><span class="n">6.</span> Spending-side reforms</h2>
+      <p class="dek">Mandatory spending &mdash; Social Security, Medicare, and Medicaid &mdash; makes up roughly two-thirds of the federal budget. Discretionary cuts alone cannot move the debt trajectory materially; a credible spending plan has to address entitlements directly.</p>
+
+      <h3><span class="n2">6.1</span> Reforming the Social Security benefit formula</h3>
+      <p>Social Security currently calculates benefits using a three-tiered formula based on a worker's Average Indexed Monthly Earnings (AIME): the first $1,226 of monthly AIME is replaced at 90%, the portion between $1,226 and $7,391 at 32%, and any amount above $7,391 at only 15% (<a href="#ref-ssa-bendpoints">SSA, 2025</a>). While already progressive, this formula does not address the program's growing shortfall, which stood at $25.1 trillion in present-value unfunded obligations over the 75-year projection window as of the 2025 Trustees Report, up from $22.6 trillion the year prior (<a href="#ref-ssa-trustees">SSA Trustees Report, 2025</a>).</p>
+
+      <h4>Illustrative effect of CBO's high-earner option</h4>
+      <p>CBO has scored three alternatives that insert a new bend point between the current second and third tiers, cutting the replacement rate above it from 32% to 10%, and the top-bracket rate from 15% to 5%. Alternative 1 sets the new bend point at the 70th percentile of AIME (roughly $5,880/month, in 2022 dollars, so only the top 30% of new beneficiaries are affected); Alternatives 2 and 3 set it lower, at the 50th percentile, applied immediately or phased in over five years. In every case, only new beneficiaries are affected (<a href="#ref-cbo-highearners">CBO</a>).</p>
+      <p>The table below applies Alternative 1's rate structure to an illustrative high earner with an AIME of $10,000/month &mdash; a career of consistently high earnings near the top of the taxable wage base. The new bend point figure is approximate (2022 dollars against a 2025 AIME scale), so treat the result as illustrative of the mechanism, not a precise 2025 estimate.</p>
+      <div class="tablewrap">
+      <table>
+        <caption>Illustrative PIA calculation, AIME = $10,000/month</caption>
+        <thead><tr><th>AIME bracket</th><th class="num">Current law</th><th class="num">CBO Alt. 1</th></tr></thead>
+        <tbody>
+          <tr><td>$0&ndash;$1,226 (90%)</td><td class="num">$1,103.40</td><td class="num">$1,103.40</td></tr>
+          <tr><td>$1,226&ndash;$5,880 (32%)</td><td class="num">&mdash;</td><td class="num">$1,489.28</td></tr>
+          <tr><td>$1,226&ndash;$7,391 (32%)</td><td class="num">$1,972.80</td><td class="num">&mdash;</td></tr>
+          <tr><td>$5,880&ndash;$7,391 (10%)</td><td class="num">&mdash;</td><td class="num">$151.10</td></tr>
+          <tr><td>Above $7,391 (15% / 5%)</td><td class="num">$391.35</td><td class="num">$130.45</td></tr>
+          <tr class="total"><td>Monthly PIA</td><td class="num">$3,467.55</td><td class="num">$2,874.23</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>For this earner, the reform cuts the monthly benefit by about $593, or roughly 17% &mdash; concentrated entirely on new beneficiaries who were already among the highest earners in the system.</p>
+
+      <h4>A more redistributive alternative: progressive price indexing</h4>
+      <p>Robert Pozen's progressive price indexing proposal restructures how initial benefits grow over a career rather than cutting a single year's formula. Workers earning below approximately $20,000 annually &mdash; roughly the bottom 30% of earners, who rely on Social Security for nearly all of their retirement income &mdash; would see no change, continuing to have benefits wage-indexed as under current law. Workers earning above approximately $90,000 annually would have benefits calculated using price indexing rather than wage indexing; because wages have historically grown faster than prices, compounding that gap over a full career produces a meaningfully smaller benefit at retirement than under current law, without any single year's formula looking as sharply cut as the CBO table above. Earners between the two thresholds receive a proportionally blended formula. The Social Security Administration's Office of the Chief Actuary estimated this reform would close approximately 72% of the program's long-term actuarial shortfall (<a href="#ref-cbpp-progindex">CBPP</a>).</p>
+      <p>Applied to the current $25.1 trillion unfunded obligation, closing 72% of the shortfall would reduce the long-term financing gap by roughly $18 trillion over 75 years &mdash; an approximation, since the 72% figure comes from a 2005 scoring against that year's smaller shortfall and has not been freshly re-run against the 2025 figure. Social Security's trust fund is technically distinct from debt held by the public, but the distinction is accounting, not economics: the trust fund is projected to be depleted by the mid-2030s, at which point benefits are either cut automatically or Congress transfers general revenue &mdash; financed by the same Treasury borrowing that drives the federal debt. In the nearer term, Social Security's own cash deficits already total a projected $3.6 trillion over the next decade, or 0.9% of GDP (<a href="#ref-ssa-trustees">SSA Trustees Report, 2025</a>).</p>
+
+      <div class="callout counter"><strong>The objection worth engaging:</strong> critics, including AARP and several Democratic lawmakers, argue that means-testing benefits by lifetime earnings &mdash; whichever version is used &mdash; erodes the "earned benefit" principle that has historically protected Social Security from being treated as a means-tested welfare program, and made it politically durable across both parties for ninety years. A paper proposing this reform should note that its long-run political risk is not fiscal but structural: it changes what kind of program Social Security is, not just what it costs.</div>
+
+      <h3><span class="n2">6.2</span> Raising the Social Security payroll tax cap</h3>
+      <p>Only the first $176,100 of wages is currently subject to Social Security payroll tax; earnings above that threshold are untouched. This is a revenue-side complement to the benefit-formula reform above. Raising the cap to cover 90% of all earnings (about $305,100 in 2024 dollars) would raise an estimated $660&ndash;800 billion over ten years. Eliminating the cap entirely closes an estimated 50&ndash;73% of the long-run shortfall, though the Social Security Administration's own modeling found that, without accompanying benefit changes, it would only delay insolvency to around 2029 before deficits resume &mdash; a strong lever, but not sufficient on its own (<a href="#ref-crfb-sssolvency">CRFB</a>; <a href="#ref-pgpf-taxcap">PGPF</a>).</p>
+
+      <h3><span class="n2">6.3</span> Work requirements in Medicaid and SNAP</h3>
+      <span class="tag bad">Needs a caveat</span>
+      <p>Both programs already carry federal work requirements as of the 2025 reconciliation law. Medicaid's "community engagement" requirement is projected to save $325.6 billion over FY2025&ndash;2034; SNAP's work requirement, $69 billion over the same period &mdash; a combined $395 billion (<a href="#ref-kff-workreq">KFF</a>).</p>
+      <p>The mechanism behind those savings needs to be stated honestly. CBO's own analysis found this policy would not meaningfully increase the number of enrollees who work. The estimated savings come almost entirely from coverage loss: 5.3 million people losing Medicaid coverage, and roughly 2.4 million fewer SNAP participants per month. Evidence from Arkansas's earlier implementation found that most people who lost coverage were already working or exempt, but fell off the rolls due to paperwork and reporting burden rather than a decision not to work (<a href="#ref-cbpp-workreq">CBPP</a>; <a href="#ref-commonwealth-workreq">Commonwealth Fund</a>).</p>
+
+      <h4>The precedent supporters cite, and why it is weaker than it looks</h4>
+      <p>Supporters of extending work requirements point to the 1996 welfare reform (PRWORA), which replaced Aid to Families with Dependent Children with TANF and imposed comparable work rules. Between 1993 and 2000, the employment rate for single mothers rose from 57.3% to 72.8% &mdash; a genuinely large increase, and the figure most often cited as evidence the model works. A more careful decomposition of that period by economist Jeffrey Grogger, however, attributes only about 13% of the increase to welfare reform itself, versus 34% to the Earned Income Tax Credit and 21% to the strong late-1990s economy. The gains were also not durable: the share of less-educated single mothers with earnings, which rose from 49% to 64% between 1995 and 2000, has since fallen back to around 55%, and the number of families with neither employment nor TANF assistance grew substantially in later years as direct aid became harder to access without proof of work (<a href="#ref-cbpp-tanf">CBPP</a>; <a href="#ref-frbsf-tanf">San Francisco Fed</a>).</p>
+      <p>Taken together with the Arkansas evidence above, the honest reading of both the 1990s and 2020s evidence is the same: work requirements reduce program cost primarily by removing people from the rolls, not by measurably increasing employment. A rigorous framing of this lever should be scoped to able-bodied, working-age adults without dependents &mdash; the population the current law actually targets &mdash; and should describe the savings mechanism as administrative attrition, not increased labor-force participation.</p>
+
+      <h3><span class="n2">6.4</span> Discretionary and defense spending</h3>
+      <p>CBO's menu of discretionary options could save up to $2 trillion combined over ten years. Restructuring the defense budget &mdash; trimming force structure, delaying select weapons programs, reducing overseas basing &mdash; could save up to $959 billion over ten years. On the non-defense side, reducing federal grants to state and local governments for transportation and education by one-third saves an estimated $339 billion over ten years (<a href="#ref-pgpf-76options">PGPF</a>; <a href="#ref-cbo-options">CBO</a>).</p>
+      <p>Social Security and Medicare alone account for 22.5% and 14.2% of the FY2025 budget, respectively &mdash; a combined 36.7%, before adding Medicaid, interest, or any other mandatory program. Discretionary spending of all kinds, defense included, is a genuinely smaller pool than the entitlement programs above, which is why Section 6.1&ndash;6.3 rather than this section carries most of the spending-side arithmetic in this paper (<a href="#ref-pgpf-top10">PGPF</a>).</p>
+    </section>
+
+    <section id="revenue">
+      <h2><span class="n">7.</span> Revenue-side reforms</h2>
+
+      <h3><span class="n2">7.1</span> Corporate income tax</h3>
+      <p>The corporate rate is currently 21%, cut from 35% by the 2017 Tax Cuts and Jobs Act; corporate income tax now supplies only about 7% of federal revenue. CBO scores each one-point increase at roughly $140 billion over ten years, so restoring the rate to 28% &mdash; reversing most of the 2017 cut &mdash; would raise on the order of $980 billion to $1 trillion over ten years (<a href="#ref-cbo-corptax">CBO</a>; <a href="#ref-bpc-corptax">Bipartisan Policy Center</a>).</p>
+      <div class="callout counter"><strong>Who actually pays this is disputed.</strong> Whether a corporate tax increase is progressive depends on who bears it, and economists do not agree. Arnold Harberger's classic 1962 result assumed the burden fell almost entirely on capital owners &mdash; shareholders, a relatively progressive outcome given how concentrated stock ownership is among higher-income households. More recent work, done in a world of internationally mobile capital, finds labor absorbs a meaningfully larger share: one widely cited estimate finds a $1.00 increase in corporate tax revenue associated with a $0.60 reduction in wages; a separate decomposition splits the incidence roughly 52% consumers, 28% workers, 20% shareholders. No consensus estimate exists, and a corporate rate increase should be presented as likely progressive on net, not purely a tax on capital (<a href="#ref-taxfoundation-incidence">Tax Foundation</a>; <a href="#ref-cepr-incidence">CEPR</a>).</div>
+
+      <h3><span class="n2">7.2</span> IRS enforcement and the tax gap</h3>
+      <p>The "tax gap" &mdash; taxes legally owed but unpaid &mdash; has grown to an estimated $688 billion per year, nearly double the $345 billion recorded two decades earlier. CBO estimates that each additional dollar of IRS enforcement funding returns $6.40; the most recent enforcement funding increase was scored by CBO at roughly $100 billion in net deficit reduction over ten years, and by Treasury's own estimate as high as $400 billion net. This lever carries essentially no policy trade-off, since it collects tax already legally owed rather than raising rates (<a href="#ref-cbo-irs">CBO</a>; <a href="#ref-treasury-taxgap">U.S. Treasury</a>).</p>
+
+      <h3><span class="n2">7.3</span> Taxing capital gains at death</h3>
+      <p>Under current law, heirs inherit assets at their market value on the date of death, erasing capital gains tax on any appreciation that occurred during the deceased's lifetime &mdash; the "stepped-up basis" rule. This costs an estimated $72.5 billion per year in forgone revenue, per the Joint Committee on Taxation, and disproportionately benefits large estates. Taxing gains at death (a carryover-basis approach) was scored by CBO at approximately $110 billion over ten years; pairing it with raising the capital gains rate to 28% raised that estimate to roughly $210 billion over ten years (<a href="#ref-cbo-stepup">CBO</a>; <a href="#ref-pgpf-stepup">PGPF</a>).</p>
+
+      <h3><span class="n2">7.4</span> A carbon tax</h3>
+      <p>CBO has scored several carbon tax designs. A $25-per-ton tax rising 5% annually raises an estimated $1 trillion over ten years; a flat $20-per-ton design has been estimated at up to $1.2 trillion. Across CBO's various designs, the ten-year range runs from about $730 billion to $1.2 trillion. The standard distributional critique applies here as it does to any consumption tax: energy costs take a larger share of income for lower earners, so a carbon tax is regressive before any offsetting rebate, and a serious proposal typically pairs the tax with a per-household dividend or rebate to blunt that effect &mdash; which reduces net revenue available for debt reduction relative to the gross figures above (<a href="#ref-cbo-carbon">CBO</a>).</p>
+
+      <h3><span class="n2">7.5</span> Expanding Medicare drug price negotiation</h3>
+      <p>The Inflation Reduction Act allowed Medicare to negotiate drug prices directly for the first time. The first ten negotiated drugs carry prices averaging 38% below their 2023 list price, saving Medicare roughly $6 billion per year, with CBO's broader ten-year estimate at approximately $98.5 billion. This program is already law; expanding the number of drugs negotiated per year beyond the current schedule would build directly on a mechanism already shown to work (<a href="#ref-medicarerights-drugnego">Medicare Rights Center</a>).</p>
+
+      <h3><span class="n2">7.6</span> Liquidating seized digital assets</h3>
+      <span class="tag bad">Conflicts with current policy</span>
+      <p>The federal government holds roughly 328,000 bitcoin, worth on the order of $22&ndash;25 billion at current prices (it has been valued as high as $36 billion at points of peak price), entirely as a byproduct of criminal and civil forfeiture &mdash; Silk Road, a record ~130,000 BTC seizure in late 2025, and a disputed $15 billion seizure tied to a crypto hack still under court scrutiny in 2026. Because none of it was purchased with appropriated funds, liquidating it to pay down debt does not carry the "the government speculated with taxpayer money" objection that would apply to a deliberate purchase program (<a href="#ref-theblock-btc">The Block</a>; <a href="#ref-bloomberg-btcseizure">Bloomberg</a>).</p>
+      <p>This proposal runs directly counter to current federal policy. A March 2025 executive order established a "Strategic Bitcoin Reserve" from this forfeited bitcoin and explicitly directed agencies not to sell it, treating it instead as a long-term reserve asset comparable to gold, and directing Treasury and Commerce to explore budget-neutral ways to acquire more. Any liquidation proposal has to be stated as a reversal of that order, not a technical footnote (<a href="#ref-phemex-reserve">Phemex</a>).</p>
+      <div class="callout counter"><strong>The strongest argument against this lever is the government's own track record.</strong> Between 2014 and 2023, the U.S. Marshals Service sold approximately 195,000 BTC through early auctions for a combined $366.5 million. At current prices, those same coins would be worth more than $21 billion &mdash; a roughly 57-fold gap between what the government realized and what it left on the table by selling early. That history is the clearest evidence available that the federal government has historically mistimed bitcoin sales badly, which argues for holding rather than a forced liquidation now. The caveat cuts the other way just as sharply: this is hindsight bias applied to one exceptionally volatile asset that could as easily have collapsed in value, and "hold speculative assets and hope" is not a repeatable fiscal strategy in the way a scored tax or spending reform is (<a href="#ref-jlopp-tracker">USMS Bitcoin Sale Tracker</a>).</div>
+      <p>At $22&ndash;36 billion, this is a one-time windfall rather than a recurring lever &mdash; roughly the same order of magnitude as historical federal spectrum auctions, which raised about $55 billion cumulatively over their entire history, and small relative to the trillion-dollar levers elsewhere in this section. It belongs in this paper as a real, current, citable option, not as a meaningful solution to the debt on its own (<a href="#ref-heritage-spectrum">Heritage Foundation</a>).</p>
+
+      <h3><span class="n2">7.7</span> Tariff revenue</h3>
+      <span class="tag bad">Legally contested</span>
+      <p>Tariff collections reached roughly $200&ndash;264 billion in calendar year 2025 following several rounds of new tariffs, with the Tax Foundation projecting $151.5 billion in 2026 collections alone and up to $2 trillion over the coming decade if current tariffs remain in place. This is a genuinely large number, comparable in scale to several of the levers earlier in this section (<a href="#ref-taxfoundation-tariffs">Tax Foundation</a>).</p>
+      <p>Two things temper it. First, the legal foundation is shakier than the headline figures suggest: in February 2026, the Supreme Court struck down the tariffs imposed under the International Emergency Economic Powers Act specifically, requiring the government to refund what had already been collected under that authority &mdash; in some months in 2026, refunds have exceeded new collections. Second, even counting the tariff revenue that has held up, combined with roughly $200 billion in one-time student loan savings, the FY2025 deficit still totaled $1.8 trillion, about 6% of GDP. Tariff revenue is real and current, but it has not moved the deficit trajectory by an amount remotely close to what would be needed to reverse it, and a meaningful share of the revenue already collected is legally unresolved (<a href="#ref-crfb-tariffs">CRFB</a>; <a href="#ref-cato-tariffs">Cato Institute</a>).</p>
+    </section>
+
+    <section id="macro">
+      <h2><span class="n">8.</span> Macroeconomic levers</h2>
+
+      <h3><span class="n2">8.1</span> Financial repression: inflation combined with rate suppression</h3>
+      <p>Between 1945 and 1981, the United States reduced its debt-to-GDP ratio from over 100% to about 31%, largely through financial repression: policies that kept nominal interest rates below inflation, producing negative real returns for bondholders. The mechanism was not, historically, forced asset sales by individuals &mdash; it was the opposite. Banks, pension funds, and insurers were required or incentivized to hold government debt at regulated, below-market rates (Regulation Q rate ceilings, reserve requirements, portfolio mandates). Combined with inflation running ahead of those capped rates, this produced a sustained negative real return on government bonds without any formal default.</p>
+      <p>The clearest historical example of the mechanism is more specific than the 1945&ndash;1981 period as a whole: from 1942 to 1951, the Federal Reserve explicitly capped Treasury yields &mdash; short-term bills at 0.375%, long-term bonds at 2.5% &mdash; and committed to buying unlimited government debt to enforce those ceilings, a policy known today as yield curve control. Debt rose sixfold over the period, from $43 billion to $269 billion, but interest costs barely moved: the effective rate on the debt was about 2.2% in 1946, far below what markets would have demanded given wartime inflation. The Fed maintained the peg for six years after the war ended before the Treasury&ndash;Fed Accord of 1951 restored its independence to set rates on its own (<a href="#ref-chicagofed-ycc">Federal Reserve Bank of Chicago</a>).</p>
+      <p>Real returns to U.S. bondholders averaged &minus;0.3% per year across 1945&ndash;1981. Debt was liquidated at a conservative estimate of 1&ndash;2.1% of GDP per year, or 3&ndash;4% of GDP per year under more aggressive estimates; the ratio fell from 122% (1946) to 66% (1955) &mdash; roughly halved in nine years (<a href="#ref-nber-liquidation">NBER</a>; <a href="#ref-cepr-finrepress">CEPR</a>).</p>
+      <div class="tablewrap">
+      <table>
+        <caption>Projected effect of financial repression on current U.S. debt-to-GDP (starting point ≈ 120%)</caption>
+        <thead><tr><th>Scenario</th><th class="num">Real rate</th><th class="num">Annual reduction</th><th class="num">Years to cut 30 points</th></tr></thead>
+        <tbody>
+          <tr><td>Conservative (matches historical average)</td><td class="num">&minus;0.5% to &minus;1%</td><td class="num">1&ndash;2% of GDP</td><td class="num">~15&ndash;20 years</td></tr>
+          <tr><td>Aggressive (matches historical high end)</td><td class="num">&minus;2% to &minus;3%</td><td class="num">3&ndash;4% of GDP</td><td class="num">~8&ndash;10 years</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>The aggressive case implies holding nominal short rates around 2&ndash;3% while inflation runs at 5&ndash;6% &mdash; a real rate of roughly &minus;250 to &minus;300 basis points, sustained for close to a decade. The honest cost of this lever is the same one listed in Section 3.4: it works by transferring wealth from savers, retirees, pension funds, and bondholders (domestic and foreign) to the government. Today's bond market is far more globalized and liquid than in 1945&ndash;1981, when the Fed and Treasury had much tighter control over where domestic savings could go; running this deliberately for a decade would likely require the same captive-audience regulations described above, and plausibly some form of capital controls, to prevent capital flight.</p>
+      <p>One partial offset to that cost is worth naming: sustained above-target inflation weakens the dollar, and a weaker dollar makes U.S. exports cheaper for foreign buyers, which can improve the trade balance and add to GDP growth &mdash; complementing the growth lever in Section 9. The effect is real but smaller and slower for the dollar than the textbook story suggests. In the short run, trade balances often worsen before they improve (the "J-curve," since import prices adjust immediately while trade volumes respond slowly), and because the dollar is the dominant invoicing currency for a large share of global trade &mdash; including trade between two other countries &mdash; exchange-rate pass-through to export volumes is muted compared with a less dominant currency. There is also a risk that cuts directly against this section's goal: a dollar weakening because it was deliberately engineered through above-target inflation can read to foreign creditors as declining confidence in the currency, not just improved export pricing, which risks raising the yields they demand on Treasuries rather than the section's intended lower ones (<a href="#ref-cepr-dollarexports">CEPR</a>; <a href="#ref-gopinath-dcp">Gopinath, Boz &amp; Plagborg-M&oslash;ller, NBER</a>).</p>
+
+      <h3><span class="n2">8.2</span> Extending the average maturity of the debt</h3>
+      <p>Treasury manages the "weighted average maturity" of outstanding debt, currently about 71 months (5.9 years) &mdash; near a 26-year high. About 32% of federal debt does not need to be refinanced for at least five years. Issuing more long-dated bonds and fewer short-dated bills locks in current rates and reduces exposure to a future spike in borrowing costs when debt must be rolled over. This is a real, actively debated tool inside Treasury's own debt-management process, distinct from the restructuring discussed in Section 5 &mdash; it changes the debt's maturity profile, not the amount owed, and Treasury weighs the tradeoff against a higher term premium on longer-dated issuance (<a href="#ref-omfif-wam">OMFIF</a>; <a href="#ref-gao-debtmgmt">GAO</a>).</p>
+
+      <h3><span class="n2">8.3</span> Revaluing gold reserves</h3>
+      <span class="tag bad">Functions as money creation</span>
+      <p>U.S. gold reserves are still carried on Treasury's books at $42.22 per troy ounce &mdash; a statutory price fixed in 1973. Gold has traded above $3,000 per ounce through 2025 and 2026. Marking the reserves to current market price would generate an accounting gain of roughly $740 billion &mdash; about two years of current interest payments, which hit a record $112 billion in a single month in April 2026. Treasury Secretary Scott Bessent stated in 2025 that no revaluation was planned, though the Federal Reserve has since published research explaining how such a revaluation would work mechanically, and President Trump has separately called for a full audit of the gold held at Fort Knox (<a href="#ref-forbes-gold">Forbes</a>; <a href="#ref-tradersppost-gold">TradersPost</a>).</p>
+      <p>The mechanism is the same kind of move as the platinum-coin proposals sometimes floated during debt-ceiling standoffs: Treasury would issue gold certificates reflecting the higher value to the Federal Reserve, and the Fed would credit Treasury's account with the difference, creating new spendable balances without any new borrowing. It is more defensible than the coin idea because the underlying asset is real and has genuinely appreciated &mdash; this is not manufacturing value from nothing. But the fiscal effect is functionally the same as the debt-monetization risk already flagged in this section: it expands the money supply without a corresponding increase in goods or services, carries the same inflation risk, and can only be done once. It is a one-time balance-sheet maneuver, not a repeatable fiscal tool.</p>
+    </section>
+
+    <section id="growth">
+      <h2><span class="n">9.</span> Growth-oriented levers</h2>
+
+      <h3><span class="n2">9.1</span> Immigration and the federal budget</h3>
+      <p>CBO's own baseline shows the 2021&ndash;2024 immigration surge reduced the deficit by a net $0.9 trillion over 2024&ndash;2034 &mdash; $1.2 trillion in additional tax revenue against only $0.3 trillion in additional mandatory spending and interest. This is a concrete, already-realized example of the "growth" lever from Section 5: expanding the working-age tax base can grow revenue faster than it grows entitlement liabilities (<a href="#ref-cbo-immigration">CBO</a>).</p>
+
+      <h3><span class="n2">9.2</span> A formalized non-citizen worker visa program</h3>
+      <p>A large share of this dynamic already exists, informally and involuntarily, for undocumented workers. Undocumented immigrants paid an estimated $89.8 billion in federal, state, and local taxes in 2023 through Individual Taxpayer Identification Numbers, including into Social Security and Medicare &mdash; programs they are categorically ineligible to ever draw from. The Social Security Administration's "Earnings Suspense File," which tracks wages that cannot be matched to a valid Social Security number, has accumulated roughly $1.3 trillion in taxed wages since 1937 &mdash; described by SSA's own actuaries as a de facto multi-hundred-billion-dollar subsidy to the trust fund (<a href="#ref-itep-undoc">ITEP</a>; <a href="#ref-aic-itin">American Immigration Council</a>).</p>
+      <p>Legal, temporary visa holders are already taxed differently by category: standard nonresident alien withholding is a flat 30% on U.S.-source income, with no access to the standard deduction available to citizens and residents. Tax treatment already varies by visa type &mdash; H-1B and TN workers pay full Social Security and Medicare tax, while H-2A agricultural workers are currently exempt from those same taxes, and F-1 and J-1 students and exchange visitors are exempt as well (<a href="#ref-irs-alien">IRS</a>).</p>
+      <p>A specific version of this proposal would expand a legal, documented non-citizen work visa &mdash; a broader version of the existing H-2 category &mdash; without a citizenship track, requiring full payroll tax contribution (unlike the current H-2A exemption) and withholding eligibility for federal benefits such as Social Security and Medicare, either permanently or until a long qualifying period. This is more legally defensible at the federal level than it may first appear: state-level classifications by immigration status receive strict scrutiny under <em>Graham v. Richardson</em>, but the Supreme Court has given the federal government much broader latitude to classify by immigration status, upholding a five-year residency requirement before Medicare access in <em>Mathews v. Diaz</em>.</p>
+
+      <div class="callout counter"><strong>The wage-effects objection.</strong> Expanding any guest-worker-style program runs into a genuinely contested question in labor economics: does a larger low-skill labor supply push down wages for domestic workers competing in the same skill group? Harvard economist George Borjas finds a substantial effect &mdash; a 10% increase in labor supply within a skill group reducing wages for comparable native-born workers by roughly 3&ndash;4% &mdash; and points to earlier guest-worker programs, including the mid-20th-century Bracero Program, where an expanded low-skill farm labor supply coincided with falling farm wages. Other economists, notably David Card and the team of Gianmarco Ottaviano and Giovanni Peri, find much smaller or negligible wage effects, arguing domestic and immigrant workers are imperfect substitutes rather than direct competitors for the same jobs. This is an active, unresolved empirical dispute, not a settled question, and any serious version of this proposal should be sized against the more pessimistic end of that range rather than the more favorable one (<a href="#ref-borjas">Borjas</a>; <a href="#ref-cato-immigrationwages">Cato Institute</a>).</div>
+
+      <p>Weighing the two objections together: the honest case for this proposal is that it is not obviously worse for the workers involved than the status quo &mdash; undocumented workers today have no legal protection and no benefit eligibility, while a documented visa holder would gain real labor protections (minimum wage enforcement, ability to change employers) while the fiscal structure stays similar. The honest case against it is twofold: it codifies a permanent, taxed-but-disenfranchised class of workers, echoing criticism historians have made of the Bracero Program for wage suppression and exploitation once a worker had no path to change employer or gain full status; and it may depress wages for domestic workers in competing skill groups, by an amount economists themselves cannot agree on. A rigorous treatment of this proposal should state all three points, not just the fiscal case in its favor.</p>
+    </section>
+
+    <section id="trust">
+      <h2><span class="n">10.</span> Political feasibility and institutional trust</h2>
+      <p>None of the levers above are self-executing; all require sustained political will, particularly the entitlement reforms in Section 6. Public trust in the fairness of the system asking for that sacrifice is a real, if non-fiscal, factor in feasibility.</p>
+      <p>One current example: a Bloomberg review of financial disclosures found that trading activity attributed to President Trump totaled nearly 28,700 trades in the first seventeen months of his second term &mdash; more than the roughly 22,200 trades reported by all of Congress combined over the same period. The White House disputes direct involvement, stating the portfolio is managed by third-party institutions using index-replicating model portfolios. Separately, 78 members of Congress were found to have violated existing disclosure requirements under the STOCK Act during the 117th Congress, and several bipartisan bills &mdash; including the Stop Insider Trading Act and the Restore Trust in Congress Act &mdash; have been introduced to ban congressional stock trading outright, with roughly 75% public support for such a ban in polling (<a href="#ref-bloomberg-trumptrades">Bloomberg</a>; <a href="#ref-congress-s1879">Congress.gov</a>).</p>
+      <p>This does not belong among the fiscal levers above &mdash; even at that trading volume, any additional tax on officials' gains would be immaterial against a $40 trillion debt, and every serious current legislative proposal is a trading ban, not a differential tax rate. It is included here because a paper that asks the public to accept entitlement cuts, work requirements, or a decade of below-market bond returns has a stronger case if it also addresses the credibility of the people asking for that sacrifice.</p>
+    </section>
+
+    <section id="summary">
+      <h2><span class="n">11.</span> Summary of estimated impact</h2>
+      <p class="dek">Ten-year, comparably scored estimates for the levers proposed as new policy in this paper. Items already enacted under current law (Medicaid/SNAP work requirements, Medicare drug price negotiation) are shown for reference but excluded from the total, since they are not new proposals. Long-horizon items (the Social Security benefit formula, financial repression) run on different timeframes and mechanisms and are not additive with the ten-year figures below.</p>
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Lever</th><th>Category</th><th class="num">10-yr estimate</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Corporate rate 21% &rarr; 28%</td><td>Revenue</td><td class="num">$0.98&ndash;1.0T</td><td>Proposed</td></tr>
+          <tr><td>IRS enforcement funding</td><td>Revenue</td><td class="num">$0.1&ndash;0.4T</td><td>Proposed (expansion)</td></tr>
+          <tr><td>Tax capital gains at death</td><td>Revenue</td><td class="num">$0.11&ndash;0.21T</td><td>Proposed</td></tr>
+          <tr><td>Carbon tax ($20&ndash;25/ton, gross of rebate)</td><td>Revenue</td><td class="num">$0.73&ndash;1.2T</td><td>Proposed</td></tr>
+          <tr><td>Social Security payroll tax cap &rarr; 90th pctile</td><td>Revenue</td><td class="num">$0.66&ndash;0.8T</td><td>Proposed</td></tr>
+          <tr><td>Discretionary &amp; defense reductions</td><td>Spending</td><td class="num">up to $2.0T</td><td>Proposed</td></tr>
+          <tr><td colspan="4" style="color:var(--ink-faint); font-style:italic;">&mdash; one-time, not comparable to structural 10-yr levers &mdash;</td></tr>
+          <tr><td>Liquidate seized bitcoin holdings</td><td>Revenue</td><td class="num">$0.022&ndash;0.036T</td><td>Proposed, reverses current policy</td></tr>
+          <tr><td>Revalue gold reserves to market price</td><td>Macro</td><td class="num">~$0.74T</td><td>Proposed, functions as money creation</td></tr>
+          <tr><td colspan="4" style="color:var(--ink-faint); font-style:italic;">&mdash; currently in effect, legally contested &mdash;</td></tr>
+          <tr><td>Tariff revenue (current schedule)</td><td>Revenue</td><td class="num">~$1.4&ndash;2.0T / 10 yrs</td><td>In effect, partly struck down</td></tr>
+          <tr><td colspan="4" style="color:var(--ink-faint); font-style:italic;">&mdash; already enacted, shown for reference &mdash;</td></tr>
+          <tr><td>Medicaid / SNAP work requirements</td><td>Spending</td><td class="num">$0.395T</td><td>Enacted, 2025</td></tr>
+          <tr><td>Medicare drug price negotiation</td><td>Spending</td><td class="num">$0.0985T</td><td>Enacted (IRA)</td></tr>
+          <tr><td colspan="4" style="color:var(--ink-faint); font-style:italic;">&mdash; different timeframe / mechanism, not additive above &mdash;</td></tr>
+          <tr><td>Social Security benefit formula reform</td><td>Spending</td><td class="num">~$18T / 75 yrs</td><td>Proposed, approximate</td></tr>
+          <tr><td>Financial repression (aggressive case)</td><td>Macro</td><td class="num">~30 pts / 8&ndash;10 yrs</td><td>Proposed</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>Summing only the proposed, ten-year, directly comparable items yields a range of roughly <strong>$3.6 trillion to $5.6 trillion over ten years</strong>. This is an indicative order of magnitude, not a formal joint score &mdash; the individual CBO and JCT estimates are static and do not account for behavioral interactions between provisions enacted together, and the carbon tax figure in particular overstates net revenue once a distributional rebate (Section 7.4) is subtracted. It represents a meaningful slowdown in the growth of the debt, not a reversal of the existing $40 trillion stock. Reversing the stock itself requires combining this with the macroeconomic levers in Section 8 and the growth levers in Section 9, sustained over a much longer horizon &mdash; measured, per Section 2, against a stabilizing trajectory rather than a fixed target ratio.</p>
+    </section>
+
+    <hr class="rule">
+
+    <section id="references">
+      <h2 style="border:none; padding:0;"><span class="n">&sect;</span> References</h2>
+
+      <h3>Section 1 &mdash; Scale of the debt</h3>
+      <ol class="plain">
+        <li id="ref-nbc-40t">NBC News, <a href="https://www.nbcnews.com/business/business-news/us-debt-crosses-40-trillion-threshold-doubling-trump-biden-rcna593441" target="_blank" rel="noopener">"U.S. Debt Crosses $40 Trillion Threshold After Doubling Under Trump and Biden"</a></li>
+        <li id="ref-crfb-grossvpublic">Committee for a Responsible Federal Budget, <a href="https://www.crfb.org/papers/qa-gross-debt-versus-debt-held-public" target="_blank" rel="noopener">"Q&amp;A: Gross Debt Versus Debt Held by the Public"</a></li>
+      </ol>
+
+      <h3>Section 2 &mdash; What debt level is sustainable</h3>
+      <ol class="plain">
+        <li id="ref-nber-growthdebt">Carmen Reinhart and Kenneth Rogoff, NBER, <a href="https://www.nber.org/system/files/working_papers/w15639/w15639.pdf" target="_blank" rel="noopener">"Growth in a Time of Debt," Working Paper 15639</a></li>
+        <li id="ref-epi-herndon">Economic Policy Institute, <a href="https://www.epi.org/blog/reinhart-rogoff-magical-90-percent-threshold/" target="_blank" rel="noopener">"The Reinhart and Rogoff Magical 90 Percent Threshold Loses Its Magic?"</a></li>
+        <li id="ref-ifs-30pct">Institute for Fiscal Studies, <a href="https://ifs.org.uk/publications/contribution-reinhart-and-rogoff-debate-not-90-percent-maybe-30-percent" target="_blank" rel="noopener">"A Contribution to the Reinhart and Rogoff Debate: Not 90 Percent But Maybe 30 Percent"</a></li>
+        <li id="ref-imf-magicthreshold">International Monetary Fund, <a href="https://www.imf.org/external/pubs/ft/wp/2014/wp1434.pdf" target="_blank" rel="noopener">"Debt and Growth: Is There a Magic Threshold?," WP/14/34</a></li>
+        <li>Committee for a Responsible Federal Budget, <a href="https://www.crfb.org/blogs/90-percent-debt-gdp-threshold-and-cbos-new-debt-estimates" target="_blank" rel="noopener">"The 90 Percent Debt-to-GDP Threshold and CBO's New Debt Estimates"</a></li>
+      </ol>
+
+      <h3>Sections 3&ndash;4 &mdash; The case for and against high debt</h3>
+      <ol class="plain">
+        <li id="ref-pgpf-interest">Peter G. Peterson Foundation, <a href="https://www.pgpf.org/article/new-report-national-debt-outlook-gets-worse-as-interest-costs-exceed-1-trillion-annually/" target="_blank" rel="noopener">"National Debt Outlook Gets Worse as Interest Costs Exceed $1 Trillion Annually"</a></li>
+        <li id="ref-pgpf-crowdout">Peter G. Peterson Foundation, <a href="https://www.pgpf.org/article/rising-interest-costs-on-the-national-debt-are-crowding-out-americas-future/" target="_blank" rel="noopener">"Rising Interest Costs on the National Debt Are Crowding Out America's Future"</a></li>
+        <li id="ref-thirdway">Third Way, <a href="https://www.thirdway.org/memo/what-to-know-about-interest-spending-and-crowd-out" target="_blank" rel="noopener">"What to Know About Interest Spending and Crowd Out"</a></li>
+        <li id="ref-bpc-natsec">Bipartisan Policy Center, <a href="https://bipartisanpolicy.org/explainer/why-the-national-debt-matters-for-national-security/" target="_blank" rel="noopener">"Why the National Debt Matters for National Security"</a></li>
+        <li id="ref-cato-natsec">Cato Institute, <a href="https://www.cato.org/commentary/americas-debt-national-security-risk" target="_blank" rel="noopener">"America's Debt Is a National Security Risk"</a></li>
+        <li id="ref-cnbc-doomloop">CNBC, <a href="https://www.cnbc.com/2025/07/07/how-the-us-deficit-could-spark-a-crisis-.html" target="_blank" rel="noopener">"America's Deficit Reckoning: How the U.S. Debt Spiral Could Spark a Crisis"</a></li>
+        <li id="ref-crfb-fiscalcrisis">Committee for a Responsible Federal Budget, <a href="https://www.crfb.org/papers/what-would-fiscal-crisis-look" target="_blank" rel="noopener">"What Would a Fiscal Crisis Look Like?"</a></li>
+        <li id="ref-pgpf-foreign">Peter G. Peterson Foundation, <a href="https://www.pgpf.org/article/the-federal-government-has-borrowed-trillions-but-who-owns-all-that-debt/" target="_blank" rel="noopener">"The Federal Government Has Borrowed Trillions. Who Owns All That Debt?"</a></li>
+        <li id="ref-cbo-unsustainable">CBO Director, via PGPF, <a href="https://www.pgpf.org/article/cbo-director-discusses-inflation-interest-costs-new-reconciliation-proposal-and-americas-unsustainable-debt/" target="_blank" rel="noopener">"CBO Director Discusses ... America's Unsustainable Debt"</a></li>
+        <li id="ref-blanchard-aer">Olivier Blanchard, <a href="https://www.aeaweb.org/articles?id=10.1257%2Faer.109.4.1197" target="_blank" rel="noopener">"Public Debt and Low Interest Rates,"</a> American Economic Review, 2019</li>
+        <li id="ref-mitpress-blanchard">MIT Press, <a href="https://direct.mit.edu/books/oa-monograph/5522/Fiscal-Policy-under-Low-Interest-Rates" target="_blank" rel="noopener">Fiscal Policy under Low Interest Rates</a></li>
+        <li id="ref-wharton-infra">Penn Wharton Budget Model, <a href="https://budgetmodel.wharton.upenn.edu/issues/2021/6/15/economic-effects-of-infrastructure-investment" target="_blank" rel="noopener">"Economic Effects of Infrastructure Investment"</a></li>
+      </ol>
+
+      <h3>Section 5 &mdash; Framework</h3>
+      <ol class="plain">
+        <li id="ref-worldbank-sovdebt">World Bank, <a href="https://www.worldbank.org/en/publication/wdr2022/brief/chapter-5-managing-sovereign-debt" target="_blank" rel="noopener">"Chapter 5: Managing Sovereign Debt," World Development Report 2022</a></li>
+      </ol>
+
+      <h3>Section 6 &mdash; Spending-side reforms</h3>
+      <ol class="plain">
+        <li id="ref-cbo-options">Congressional Budget Office, <a href="https://www.cbo.gov/publication/60557" target="_blank" rel="noopener">"Options for Reducing the Deficit: 2025 to 2034"</a></li>
+        <li id="ref-pgpf-76options">Peter G. Peterson Foundation, <a href="https://www.pgpf.org/article/76-options-for-reducing-the-deficit/" target="_blank" rel="noopener">"76 Options for Reducing the Deficit"</a></li>
+        <li id="ref-pgpf-top10">Peter G. Peterson Foundation, <a href="https://www.pgpf.org/article/top-10-largest-budget-functions/" target="_blank" rel="noopener">"Top 10 Largest Budget Functions"</a></li>
+        <li id="ref-ssa-bendpoints">Social Security Administration, <a href="https://www.ssa.gov/oact/cola/bendpoints.html" target="_blank" rel="noopener">"Benefit Formula Bend Points"</a></li>
+        <li id="ref-cbo-highearners">Congressional Budget Office, <a href="https://www.cbo.gov/budget-options/60911" target="_blank" rel="noopener">"Reduce Social Security Benefits for High Earners"</a></li>
+        <li id="ref-cbpp-progindex">Center on Budget and Policy Priorities, <a href="https://www.cbpp.org/research/an-analysis-of-using-progressive-price-indexing-to-set-social-security-benefits" target="_blank" rel="noopener">"An Analysis of Using Progressive Price Indexing to Set Social Security Benefits"</a></li>
+        <li id="ref-ssa-trustees">Social Security Administration, <a href="https://www.ssa.gov/oact/TR/2025/II_A_highlights.html" target="_blank" rel="noopener">2025 OASDI Trustees Report, Highlights</a></li>
+        <li id="ref-crfb-sssolvency">Committee for a Responsible Federal Budget, <a href="https://www.crfb.org/blogs/cbos-options-improve-social-security-solvency" target="_blank" rel="noopener">"CBO's Options to Improve Social Security Solvency"</a></li>
+        <li id="ref-pgpf-taxcap">Peter G. Peterson Foundation, <a href="https://www.pgpf.org/article/should-we-eliminate-the-social-security-tax-cap-here-are-the-pros-and-cons/" target="_blank" rel="noopener">"Should We Eliminate the Social Security Tax Cap?"</a></li>
+        <li id="ref-kff-workreq">KFF, <a href="https://www.kff.org/medicaid/a-closer-look-at-the-work-requirement-provisions-in-the-2025-federal-budget-reconciliation-law/" target="_blank" rel="noopener">"A Closer Look at the Work Requirement Provisions in the 2025 Federal Budget Reconciliation Law"</a></li>
+        <li id="ref-cbpp-workreq">Center on Budget and Policy Priorities, <a href="https://www.cbpp.org/research/health/medicaid-work-requirements-will-take-away-coverage-from-millions-state-and" target="_blank" rel="noopener">"Medicaid Work Requirements Will Take Away Coverage From Millions"</a></li>
+        <li id="ref-commonwealth-workreq">Commonwealth Fund, <a href="https://www.commonwealthfund.org/publications/issue-briefs/2025/may/medicaid-work-requirements-job-losses-harm-states" target="_blank" rel="noopener">"How National Medicaid Work Requirements Would Lead to Large-Scale Job Losses"</a></li>
+        <li id="ref-cbpp-tanf">Center on Budget and Policy Priorities, <a href="https://www.cbpp.org/blog/why-the-1996-welfare-law-is-not-a-model-for-other-safety-net-programs" target="_blank" rel="noopener">"Why the 1996 Welfare Law Is Not a Model for Other Safety-Net Programs"</a></li>
+        <li id="ref-frbsf-tanf">Federal Reserve Bank of San Francisco, <a href="https://www.frbsf.org/research-and-insights/publications/economic-letter/2009/08/welfare-reform-single-mothers/" target="_blank" rel="noopener">"Did Welfare Reform Work for Everyone? A Look at Young Single Mothers"</a></li>
+      </ol>
+
+      <h3>Section 7 &mdash; Revenue-side reforms</h3>
+      <ol class="plain">
+        <li id="ref-cbo-corptax">Congressional Budget Office, <a href="https://www.cbo.gov/budget-options/54810" target="_blank" rel="noopener">"Increase the Corporate Income Tax Rate by 1 Percentage Point"</a></li>
+        <li id="ref-bpc-corptax">Bipartisan Policy Center, <a href="https://bipartisanpolicy.org/explainer/the-2025-tax-debate-the-corporate-tax-rate-and-pass-through-deduction/" target="_blank" rel="noopener">"The 2025 Tax Debate: The Corporate Tax Rate and Pass-Through Deduction"</a></li>
+        <li id="ref-taxfoundation-incidence">Tax Foundation, <a href="https://taxfoundation.org/research/all/federal/labor-bears-corporate-tax/" target="_blank" rel="noopener">"Labor Bears Much of the Cost of the Corporate Tax"</a></li>
+        <li id="ref-cepr-incidence">CEPR, <a href="https://cepr.org/voxeu/columns/incidence-corporate-taxation-and-its-implications-tax-progressivity" target="_blank" rel="noopener">"The Incidence of Corporate Taxation and Its Implications for Tax Progressivity"</a></li>
+        <li id="ref-cbo-irs">Congressional Budget Office, <a href="https://www.cbo.gov/publication/60037" target="_blank" rel="noopener">"How Changes in Funding for the IRS Affect Revenues"</a></li>
+        <li id="ref-treasury-taxgap">U.S. Department of the Treasury, <a href="https://home.treasury.gov/news/featured-stories/the-case-for-a-robust-attack-on-the-tax-gap" target="_blank" rel="noopener">"The Case for a Robust Attack on the Tax Gap"</a></li>
+        <li id="ref-cbo-stepup">Congressional Budget Office, <a href="https://www.cbo.gov/budget-options/60943" target="_blank" rel="noopener">"Change the Taxation of Assets Transferred at Death"</a></li>
+        <li id="ref-pgpf-stepup">Peter G. Peterson Foundation, <a href="https://www.pgpf.org/article/what-is-the-stepped-up-basis-and-how-does-it-affect-the-federal-budget/" target="_blank" rel="noopener">"What Is Stepped-Up Basis and How Does It Affect the Federal Budget?"</a></li>
+        <li id="ref-cbo-carbon">Congressional Budget Office, <a href="https://www.cbo.gov/budget-options/54821" target="_blank" rel="noopener">"Impose a Tax on Emissions of Greenhouse Gases"</a></li>
+        <li id="ref-medicarerights-drugnego">Medicare Rights Center, <a href="https://www.medicarerights.org/medicare-watch/2025/10/09/negotiated-prices-take-effect-for-ten-drugs-in-2026" target="_blank" rel="noopener">"Negotiated Prices Take Effect for Ten Drugs in 2026"</a></li>
+        <li id="ref-theblock-btc">The Block, <a href="https://www.theblock.co/post/374572/us-government-bitcoin-holdings-balloon-to-36-billion-following-record-breaking-doj-seizure" target="_blank" rel="noopener">"US Government Bitcoin Holdings Balloon to $36 Billion Following Record-Breaking DOJ Seizure"</a></li>
+        <li id="ref-bloomberg-btcseizure">Bloomberg, <a href="https://www.bloomberg.com/news/articles/2026-03-24/us-s-mysterious-15-billion-crypto-haul-faces-questions-in-court" target="_blank" rel="noopener">"US Faces Court Scrutiny Over $15 Billion Bitcoin Seizure Linked to Crypto Hack"</a></li>
+        <li id="ref-phemex-reserve">Phemex, <a href="https://phemex.com/blogs/us-bitcoin-holdings-and-strategic-reserve" target="_blank" rel="noopener">"US Strategic Bitcoin Reserve: 328K BTC Worth $25B Still Awaits Congress"</a></li>
+        <li id="ref-jlopp-tracker">U.S. Marshals Service, via jlopp.github.io, <a href="https://jlopp.github.io/us-marshals-bitcoin-auctions/" target="_blank" rel="noopener">"US Government Seized Bitcoin Sales Tracker"</a></li>
+        <li id="ref-heritage-spectrum">Heritage Foundation, <a href="https://www.heritage.org/budget-and-spending/report/raising-revenues-the-auction-option-the-telecommunications-spectrum" target="_blank" rel="noopener">"Raising Revenues with the Auction Option for the Telecommunications Spectrum"</a></li>
+        <li id="ref-taxfoundation-tariffs">Tax Foundation, <a href="https://taxfoundation.org/research/federal-tax/trump-tariffs-trade-war/" target="_blank" rel="noopener">"Trump Tariffs Tracker: Rates, Revenue, and Impact"</a></li>
+        <li id="ref-crfb-tariffs">Committee for a Responsible Federal Budget, <a href="https://www.crfb.org/blogs/tariff-revenue-soars-fy-2025-amid-legal-uncertainty" target="_blank" rel="noopener">"Tariff Revenue Soars in FY 2025 Amid Legal Uncertainty"</a></li>
+        <li id="ref-cato-tariffs">Cato Institute, <a href="https://www.cato.org/blog/tariffs-funded-everything-2025-will-fantasy-continue-2026" target="_blank" rel="noopener">"Tariffs 'Funded' Everything in 2025 &mdash; Will the Fantasy Continue in 2026?"</a></li>
+      </ol>
+
+      <h3>Section 8 &mdash; Macroeconomic levers</h3>
+      <ol class="plain">
+        <li id="ref-nber-liquidation">Carmen Reinhart and M. Belen Sbrancia, NBER, <a href="https://www.nber.org/papers/w16893" target="_blank" rel="noopener">"The Liquidation of Government Debt," Working Paper 16893</a></li>
+        <li id="ref-cepr-finrepress">CEPR, <a href="https://cepr.org/voxeu/columns/financial-repression-then-and-now" target="_blank" rel="noopener">"Financial Repression: Then and Now"</a></li>
+        <li id="ref-chicagofed-ycc">Federal Reserve Bank of Chicago, <a href="https://www.chicagofed.org/publications/economic-perspectives/2021/2" target="_blank" rel="noopener">"Yield Curve Control in the United States, 1942 to 1951"</a></li>
+        <li id="ref-omfif-wam">OMFIF, <a href="https://www.omfif.org/2023/11/this-isnt-a-corporation-us-treasurys-debt-maturity-management/" target="_blank" rel="noopener">"This Isn't a Corporation: US Treasury's Debt Maturity Management"</a></li>
+        <li id="ref-gao-debtmgmt">Government Accountability Office, <a href="https://files.gao.gov/reports/GAO-26-107529/index.html" target="_blank" rel="noopener">"Federal Debt Management: Treasury Is Meeting Borrowing Needs but the Deteriorating Fiscal Outlook Poses Risks"</a></li>
+        <li id="ref-forbes-gold">Forbes, <a href="https://www.forbes.com/sites/brandonkochkodin/2025/08/06/the-treasury-is-sitting-on-a-750-billion-gold-hoardofficially-valued-at-11-billion/" target="_blank" rel="noopener">"Could the Treasury Revalue Gold for Bitcoin Reserve or Debt Relief?"</a></li>
+        <li id="ref-tradersppost-gold">TradersPost, <a href="https://blog.traderspost.io/article/us-treasury-gold-revaluation-debate" target="_blank" rel="noopener">"Should US Treasury Revalue Gold Reserves"</a></li>
+        <li id="ref-cepr-dollarexports">CEPR, <a href="https://cepr.org/voxeu/columns/dollars-and-exports-effects-currency-strength-international-trade" target="_blank" rel="noopener">"Dollars and Exports: The Effects of Currency Strength on International Trade"</a></li>
+        <li id="ref-gopinath-dcp">Gita Gopinath, Emine Boz, and Mikkel Plagborg-M&oslash;ller, NBER, <a href="https://www.nber.org/system/files/working_papers/w22943/w22943.pdf" target="_blank" rel="noopener">"Dominant Currency Paradigm," Working Paper 22943</a></li>
+      </ol>
+
+      <h3>Section 9 &mdash; Growth-oriented levers</h3>
+      <ol class="plain">
+        <li id="ref-cbo-immigration">Congressional Budget Office, <a href="https://www.cbo.gov/publication/60165" target="_blank" rel="noopener">"Effects of the Immigration Surge on the Federal Budget and the Economy"</a></li>
+        <li id="ref-itep-undoc">Institute on Taxation and Economic Policy, <a href="https://itep.org/undocumented-immigrants-taxes-2024/" target="_blank" rel="noopener">"Tax Payments by Undocumented Immigrants"</a></li>
+        <li id="ref-aic-itin">American Immigration Council, <a href="https://www.americanimmigrationcouncil.org/blog/how-undocumented-immigrants-pay-taxes-itin/" target="_blank" rel="noopener">"How Undocumented Immigrants Pay Taxes and Contribute to the U.S. Tax Base"</a></li>
+        <li id="ref-irs-alien">Internal Revenue Service, <a href="https://www.irs.gov/individuals/taxation-of-alien-individuals-by-immigration-status-h-1b" target="_blank" rel="noopener">"Taxation of Alien Individuals by Immigration Status"</a></li>
+        <li id="ref-borjas">George Borjas, via Center for Immigration Studies, <a href="https://cis.org/sites/default/files/borjas-economics.pdf" target="_blank" rel="noopener">"The Economics of Immigration"</a></li>
+        <li id="ref-cato-immigrationwages">Cato Institute, <a href="https://www.cato.org/cato-journal/fall-2017/does-immigration-reduce-wages" target="_blank" rel="noopener">"Does Immigration Reduce Wages?"</a></li>
+      </ol>
+
+      <h3>Section 10 &mdash; Political feasibility</h3>
+      <ol class="plain">
+        <li id="ref-bloomberg-trumptrades">Bloomberg, <a href="https://www.bloomberg.com/graphics/2026-trump-stock-trades-congress/" target="_blank" rel="noopener">"Trump Made 29,000 Securities Trades, More Than All of Congress"</a></li>
+        <li id="ref-congress-s1879">Congress.gov, <a href="https://www.congress.gov/bill/119th-congress/senate-bill/1879" target="_blank" rel="noopener">S.1879, Ban Congressional Stock Trading Act, 119th Congress</a></li>
+      </ol>
+    </section>
+
+  </main>
+
+  <footer>
+    Draft working paper. Figures reflect CBO, SSA, Treasury, GAO, and related sources as cited, current as of September 2026. Ten-year and long-horizon estimates are static scores from the cited agencies and are not additive across sections except where explicitly summed in Section 11. Counterarguments are included deliberately throughout &mdash; the goal is a defensible paper, not a one-sided one.
+  </footer>
+</div>
